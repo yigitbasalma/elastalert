@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: elastalert
+  name: elastalert
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elastalert
+  template:
+    metadata:
+      labels:
+        app: elastalert
+    spec:
+      volumes:
+        - name: config-yaml
+          configMap:
+            name: elastalert-configs
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: config-test-yaml
+          configMap:
+            name: elastalert-configs
+            items:
+              - key: config-test.yaml
+                path: config-test.yaml
+        - name: config-json
+          configMap:
+            name: elastalert-configs
+            items:
+              - key: config.json
+                path: config.json
+        - name: rule-templates
+          configMap:
+            name: rule-templates
+        - name: rules-dir
+          persistentVolumeClaim:
+            claimName: rules-dir
+      containers:
+      - image: bitsensor/elastalert:3.0.0-beta.0
+        name: elastalert
+        env:
+          - name: ES_USERNAME
+            value: elastic
+          - name: ES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: elastic-cluster-es-elastic-user
+                key: elastic
+        volumeMounts:
+          - name: rules-dir
+            mountPath: /opt/elastalert/rules
+          - name: config-yaml
+            mountPath: /opt/elastalert/config.yaml
+            subPath: config.yaml
+          - name: config-test-yaml
+            mountPath: /opt/elastalert/config-test.yaml
+            subPath: config-test.yaml
+          - name: config-json
+            mountPath: /opt/elastalert-server/config/config.json
+            subPath: config.json
