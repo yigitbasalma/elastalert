@@ -62,3 +62,5 @@ spec:
           - name: config-json
             mountPath: /opt/elastalert-server/config/config.json
             subPath: config.json
+          - name: rule-templates
+            mountPath: /opt/elastalert/rules
